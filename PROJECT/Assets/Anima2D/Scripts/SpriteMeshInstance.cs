@@ -11,7 +11,7 @@ namespace Anima2D
 	[ExecuteInEditMode]
 	public class SpriteMeshInstance : MonoBehaviour
 	{
-		[SerializeField]
+		[SerializeField][FormerlySerializedAs("spriteMesh")]
 		SpriteMesh m_SpriteMesh;
 		
 		[SerializeField]
@@ -23,8 +23,11 @@ namespace Anima2D
 		[SerializeField]
 		int m_SortingLayerID = 0;
 		
-		[SerializeField]
+		[SerializeField][FormerlySerializedAs("orderInLayer")]
 		int m_SortingOrder = 0;
+		
+		[SerializeField][HideInInspector][FormerlySerializedAs("bones")]
+		Bone2D[] m_Bones;
 
 		[SerializeField][HideInInspector]
 		Transform[] m_BoneTransforms;
@@ -88,8 +91,14 @@ namespace Anima2D
 		List<Bone2D> m_CachedBones = new List<Bone2D>();
 
 		public List<Bone2D> bones {
-			get
-			{
+			get {
+
+				//DEPRECATED: m_Bones
+				if(m_Bones != null && m_Bones.Length > 0 && m_CachedBones.Count == 0)
+				{
+					bones = new List<Bone2D>(m_Bones);
+				}
+
 				if(m_BoneTransforms != null && m_CachedBones.Count != m_BoneTransforms.Length)
 				{
 					m_CachedBones = new List<Bone2D>(m_BoneTransforms.Length);
@@ -121,9 +130,8 @@ namespace Anima2D
 
 				return m_CachedBones;
 			}
-			
-			set
-			{
+			set {
+				m_Bones = null;
 				m_CachedBones = new List<Bone2D>(value);
 				m_BoneTransforms = new Transform[m_CachedBones.Count];
 
@@ -292,11 +300,10 @@ namespace Anima2D
 				m_CurrentMesh.Clear();
 				m_CurrentMesh.name = m_InitialMesh.name;
 				m_CurrentMesh.vertices = m_InitialMesh.vertices;
-				m_CurrentMesh.uv = m_InitialMesh.uv;
 				m_CurrentMesh.normals = m_InitialMesh.normals;
-				m_CurrentMesh.tangents = m_InitialMesh.tangents;
 				m_CurrentMesh.boneWeights = m_InitialMesh.boneWeights;
 				m_CurrentMesh.bindposes = m_InitialMesh.bindposes;
+				m_CurrentMesh.uv = m_InitialMesh.uv;
 				m_CurrentMesh.bounds = m_InitialMesh.bounds;
 				m_CurrentMesh.colors = m_InitialMesh.colors;
 
@@ -410,18 +417,39 @@ namespace Anima2D
 			{
 				cachedRenderer.sortingLayerID = sortingLayerID;
 				cachedRenderer.sortingOrder = sortingOrder;
-				cachedRenderer.sharedMaterials = m_Materials;
-				cachedRenderer.GetPropertyBlock(materialPropertyBlock);
-
-				if(spriteTexture)
-				{
-					materialPropertyBlock.SetTexture("_MainTex", spriteTexture);
-				}
-
-				materialPropertyBlock.SetColor("_Color",color);
 				
-				cachedRenderer.SetPropertyBlock(materialPropertyBlock);
+				if(m_Materials != null && m_Materials.Length > 0)
+				{
+					cachedRenderer.sharedMaterials = m_Materials;
+				}else if(spriteMesh && spriteMesh.sharedMaterials != null)
+				{
+					cachedRenderer.sharedMaterials = spriteMesh.sharedMaterials;
+				}
+				
+				if(materialPropertyBlock != null)
+				{
+					if(spriteTexture)
+					{
+						materialPropertyBlock.SetTexture("_MainTex", spriteTexture);
+					}
+
+					materialPropertyBlock.SetColor("_Color",color);
+					
+					cachedRenderer.SetPropertyBlock(materialPropertyBlock);
+				}
 			}
 		}
+
+#if UNITY_EDITOR
+		void OnRenderObject()
+		{
+			//Restore materials to preserve previews
+			if(cachedRenderer && spriteMesh && spriteMesh.sharedMaterials != null)
+			{
+				cachedRenderer.sharedMaterials = spriteMesh.sharedMaterials;
+			}
+		}
+#endif
+
 	}
 }

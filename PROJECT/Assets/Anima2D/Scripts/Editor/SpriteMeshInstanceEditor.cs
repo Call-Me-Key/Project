@@ -21,6 +21,7 @@ namespace Anima2D
 		SerializedProperty m_SpriteMeshProperty;
 		SerializedProperty m_ColorProperty;
 		SerializedProperty m_MaterialsProperty;
+		SerializedProperty m_BonesProperty;
 		SerializedProperty m_BoneTransformsProperty;
 
 		int m_UndoGroup = -1;
@@ -33,9 +34,24 @@ namespace Anima2D
 			m_SpriteMeshProperty = serializedObject.FindProperty("m_SpriteMesh");
 			m_ColorProperty = serializedObject.FindProperty("m_Color");
 			m_MaterialsProperty = serializedObject.FindProperty("m_Materials.Array");
+			m_BonesProperty = serializedObject.FindProperty("m_Bones.Array");
 			m_BoneTransformsProperty = serializedObject.FindProperty("m_BoneTransforms.Array");
 
 			UpgradeToMaterials();
+			UpgradeToBoneTransforms();
+
+			/*
+			if(m_SpriteMeshInstance.cachedRenderer)
+			{
+				foreach(Material material in m_SpriteMeshInstance.cachedRenderer.sharedMaterials)
+				{
+					if(material)
+					{
+						material.hideFlags = HideFlags.HideInInspector;
+					}
+				}
+			}
+			*/
 
 			UpdateSpriteMeshData();
 			SetupBoneList();
@@ -54,6 +70,32 @@ namespace Anima2D
 				serializedObject.Update();
 				m_MaterialsProperty.InsertArrayElementAtIndex(0);
 				m_MaterialsProperty.GetArrayElementAtIndex(0).objectReferenceValue = SpriteMeshUtils.defaultMaterial;
+				serializedObject.ApplyModifiedProperties();
+			}
+		}
+
+		void UpgradeToBoneTransforms()
+		{
+			if(Selection.transforms.Length == 1 && m_BoneTransformsProperty.arraySize == 0 && m_BonesProperty.arraySize > 0)
+			{
+				serializedObject.Update();
+				
+				m_BoneTransformsProperty.arraySize = m_BonesProperty.arraySize;
+				
+				for(int i = 0; i < m_BonesProperty.arraySize; ++i)
+				{
+					SerializedProperty boneElement = m_BonesProperty.GetArrayElementAtIndex(i);
+					SerializedProperty transformElement = m_BoneTransformsProperty.GetArrayElementAtIndex(i);
+					
+					if(boneElement.objectReferenceValue)
+					{
+						Bone2D bone = boneElement.objectReferenceValue as Bone2D;
+						transformElement.objectReferenceValue = bone.transform;
+					}
+				}
+
+				m_BonesProperty.arraySize = 0;
+
 				serializedObject.ApplyModifiedProperties();
 			}
 		}

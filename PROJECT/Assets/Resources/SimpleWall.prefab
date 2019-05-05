@@ -104,3 +104,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c177b9766304b7409b16bea77428c49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ownedWarWay:
+    start:
+    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 0}
+    finish:
+    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 0}
+    - {x: 0, y: 0, z: 0}
+    linkedNexuses:
+    - {fileID: 0}
+    - {fileID: 0}
+    swap: 0
+    environmentObjects: []
+    leftSideWallsPrefabs: []
+    rightSideWallsPrefabs: []
+    floorPrefabList: []

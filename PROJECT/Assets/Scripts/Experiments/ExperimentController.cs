@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class ExperimentController : MonoBehaviour
 {
@@ -13,27 +14,27 @@ public class ExperimentController : MonoBehaviour
     void Start()
     {
         float len = (nexus.linkedWarNexus.transform.position - nexus.transform.position).magnitude;
-        for (int i = 0; i < 20; i++)
-        {
-            AddEnvObj(Random.RandomRange(0, 20), Random.RandomRange(0, len));
-        }
+        //for (int i = 0; i < 20; i++)
+        //{
+        //    AddEnvObj(Random.RandomRange(0, 20), Random.RandomRange(0, len));
+        //}
         nexus.warWay.SetupEnvironment();
 
         GameObject wallPrefab = (GameObject)Resources.Load("SimpleWall");
         nexus.warWay.SetLenAccordingLongestObstructList();
         nexus.warWay.MakeEndWalls(wallPrefab, true);
         nexus.warWay.MakeEndWalls(wallPrefab, false);
-        nexus.warWay.MakeSideWallsFromPrefabList();
-        nexus.warWay.MakeFloorFromPrefabList();
+        nexus.warWay.InitWallsFloor();
     }
 
-    private void AddEnemy(EnterPoint enterPoint)
+    private Pawn AddEnemy(EnterPoint enterPoint)
     {
-            GameObject variableForPrefab = (GameObject)Resources.Load("SimplePawn");
+            GameObject variableForPrefab = (GameObject)Resources.Load("ChanPawn");
             variableForPrefab = Instantiate(variableForPrefab);
             Pawn pawn = variableForPrefab.GetComponent<Pawn>();
-            pawn.FitRigidbody();
+            pawn.InitObject();
             pawn.SetWay(enterPoint);
+            return pawn;
     }
 
     private void AddEnvObj(float far, float pos)
@@ -54,7 +55,8 @@ public class ExperimentController : MonoBehaviour
         {
             var ePoints = FindObjectsOfType<EnterPoint>();
             int it = (int)Random.Range(0, ePoints.Length);
-            AddEnemy(ePoints[it]);
+            var p = AddEnemy(ePoints[it]).GetComponent<NavMeshAgent>();
+            p.SetDestination(nexus.warWay.start[3] + (nexus.warWay.finish[3] - nexus.warWay.start[3]) / 2);
         }
         Debug.DrawRay(explodePoint, Vector3.up * 100000);
         if (Input.GetKey(KeyCode.E))

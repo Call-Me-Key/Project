@@ -55,6 +55,11 @@ public class WarWay
         }
     }
 
+    public void InitWallsFloor()
+    {
+        MakeSideWallsFromPrefabList();
+        MakeFloorFromPrefabList();
+    }
     public void RotateEnvironment()
     {
         Vector3 norm = start[0] - finish[0];
@@ -108,7 +113,7 @@ public class WarWay
         }
     }
 
-    public void MakeSideWallsFromPrefabList()
+    private void MakeSideWallsFromPrefabList()
     {
         Vector3 lookVector = (start[1] - start[0]).normalized;
         Vector3 forwardVector = (finish[0] - start[0]).normalized;
@@ -156,24 +161,35 @@ public class WarWay
         }
     }
 
-    public void MakeFloorFromPrefabList()
+    private void MakeFloorFromPrefabList()
     {
         Vector3 forwardVector = (finish[0] - start[0]).normalized;
 
         for (int i = 0; i < floorPrefabList.Count; i++)
         {
             float pos = 0.0f;
-            foreach (var floor in floorPrefabList[i].gameObjects)
+            for (int q = 0; q < floorPrefabList[i].gameObjects.Count; q++)
             {
-                GameObject newFloor = GameObject.Instantiate(floor.gameObject);
-                newFloor.transform.LookAt(newFloor.transform.position + forwardVector);
-                newFloor.transform.position = start[i] 
-                    + (-newFloor.transform.up * (newFloor.transform.localScale.y / 2)) 
-                    + forwardVector * (pos + (newFloor.transform.localScale.z / 2));
-                pos += newFloor.transform.localScale.z;
+                floorPrefabList[i].gameObjects[q] = GameObject.Instantiate(floorPrefabList[i].gameObjects[q]);
+                floorPrefabList[i].gameObjects[q].transform.LookAt(floorPrefabList[i].gameObjects[q].transform.position + forwardVector);
+                floorPrefabList[i].gameObjects[q].transform.position = start[i]
+                    + (-floorPrefabList[i].gameObjects[q].transform.up * (floorPrefabList[i].gameObjects[q].transform.localScale.y / 2))
+                    + forwardVector * (pos + (floorPrefabList[i].gameObjects[q].transform.localScale.z / 2));
+                pos += floorPrefabList[i].gameObjects[q].transform.localScale.z;
 
-                var go = newFloor.GetComponent<GameplayObject>();
+                var go = floorPrefabList[i].gameObjects[q].GetComponent<GameplayObject>();
+                go.InitObject();
                 go.ownedWarWay = this;
+            }
+        }
+
+        for (int i = 0; i < floorPrefabList.Count; i++)
+        {
+            for (int q = 0; q < floorPrefabList[i].gameObjects.Count; q++)
+            {
+                if (floorPrefabList[i].gameObjects[q].GetComponent<Floor>().navSurface == null)
+                    Debug.Log("NULL");
+                floorPrefabList[i].gameObjects[q].GetComponent<Floor>().navSurface.BuildNavMesh();
             }
         }
     }
@@ -215,11 +231,8 @@ public class WarWay
                 Vector3.Distance(start[i], tempPos[i]), 
                 Vector3.Distance(position, tempPos[i])));
         }
-        Debug.Log("Before: " + onWayPositions[0].line + " : " + onWayPositions[0].lenFromEnterPoint);
-
         onWayPositions.Sort((emp1, emp2) => emp1.lenFromEnterPoint.CompareTo(emp2.lenFromEnterPoint));
 
-        Debug.Log("After: " + onWayPositions[0].line + " : " + onWayPositions[0].lenFromEnterPoint);
 
         //for (int i = 0; i < onWayPositions.Count; i++)
         //{

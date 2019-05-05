@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(GameplayObject))]
 public class EnterPoint : MonoBehaviour
 {
-    public GameplayObject gameplayObject { get; private set; } = null;
+    public GameplayObject gameplayObject { get; private set; }
     public List<OnWayPosition> nearPositions = null;
 
     // Start is called before the first frame update
